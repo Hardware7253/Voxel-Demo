@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://b4x3hr8n0pmhv"]
+
+[ext_resource type="Texture2D" uid="uid://dvc12trlr0c86" path="res://assets/sprites/crosshair.png" id="1_jyhfs"]
+[ext_resource type="Script" uid="uid://b1woponu81vso" path="res://scripts/block_grid.gd" id="1_o5qli"]
+[ext_resource type="PackedScene" uid="uid://dpepqfdumftuk" path="res://scenes/blocks/corner_2.tscn" id="2_tbgi4"]
+[ext_resource type="Script" uid="uid://ctt71nuhmtrxq" path="res://scripts/player_controller.gd" id="3_sugp2"]
+[ext_resource type="PackedScene" uid="uid://d0e8eqmkibcoy" path="res://scenes/blocks/highlight.tscn" id="4_tbgi4"]
+
+[sub_resource type="Environment" id="Environment_sugp2"]
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 1.09
+
+[node name="Main" type="Node3D" unique_id=2033617752]
+
+[node name="BlockGrid" type="Node3D" parent="." unique_id=498222449 node_paths=PackedStringArray("block_detector", "drag_block_detector")]
+script = ExtResource("1_o5qli")
+highlight = ExtResource("4_tbgi4")
+block = ExtResource("2_tbgi4")
+block_detector = NodePath("../Player/BlockDetector")
+drag_block_detector = NodePath("")
+
+[node name="Player" type="Node3D" parent="." unique_id=1066406455]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -7.72)
+script = ExtResource("3_sugp2")
+xz_speed = 20
+y_speed = 20
+mouse_sensitivity = 1.5
+
+[node name="Camera3D" type="Camera3D" parent="Player" unique_id=619911490]
+
+[node name="BlockDetector" type="RayCast3D" parent="Player" unique_id=395879583]
+transform = Transform3D(1, 0, 0, 0, -1.3113416e-06, -1, 0, 30, -4.371139e-08, 0, 0, 0)
+debug_shape_custom_color = Color(0.1404, 0.12900001, 0.3, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=459432285]
+environment = SubResource("Environment_sugp2")
+
+[node name="Control" type="Control" parent="." unique_id=673421362]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Crosshair" type="Sprite2D" parent="Control" unique_id=957518994]
+texture_filter = 1
+texture = ExtResource("1_jyhfs")

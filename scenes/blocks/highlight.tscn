@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://d0e8eqmkibcoy"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ks0tn"]
+albedo_color = Color(0.69, 0.69, 0.69, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ebtek"]
+
+[node name="Node3D" type="Node3D" unique_id=1775433508]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=596410021]
+transform = Transform3D(8, 0, 0, 0, 0.001, 0, 0, 0, 8, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_ks0tn")
+transparency = 0.64
+mesh = SubResource("BoxMesh_ebtek")
