@@ -34,6 +34,12 @@ func reset_highlight():
 	highlighted_block_instace = null
 	highlight_normal = Vector3.ZERO
 
+# Rotates a node to match the direction of the node_alignment_dir to match_dir
+# Directions are expected to be unit vectors
+func rotate_to_match_dir(node: Node3D, node_alignment_dir: Vector3, match_dir: Vector3):
+	var angle = acos(node_alignment_dir.dot(match_dir)) # From θ = cos⁻¹((a·b) / (|a||b|))
+	var axis = node_alignment_dir.cross(match_dir)
+	node.basis = Basis(axis.normalized(), angle)
 
 # Highlight the blcok that the block detector raycast is colliding with
 func highlight_block():
@@ -58,16 +64,18 @@ func highlight_block():
 
 			highlight_instance.global_position = collider.global_position + (BlockConsts.BLOCK_SIZE * norm / 2)
 			highlight_instance.visible = true 
-			var angle_x = acos(highlight_mesh.basis.x.dot(norm) / (highlight_mesh.basis.x.length() * norm.length()))
-			var angle_z = acos(highlight_mesh.basis.z.dot(norm) / (highlight_mesh.basis.z.length() * norm.length()))
-			highlight_mesh.rotation = Vector3(PI / 2 - angle_z, 0, PI / 2 - angle_x)
+
+			# Align the highlight to the collision normal
+			var highlight_align_dir: Vector3 = highlight_instance.get_meta("align_direction")
+			if highlight_align_dir != null:
+				rotate_to_match_dir(highlight_instance, highlight_align_dir, norm)
 
 	else:
 		reset_highlight()
 
 # Places a block at the provided position and returns the instance
 # null will be returned if the position was occupied
-func place_block(block_pos: Vector3, block_parent: Node3D) -> Node3D:
+func place_block(block_pos: Vector3, place_normal: Vector3, block_scene: PackedScene, block_parent: Node3D) -> Node3D:
 		var space_state = get_world_3d().direct_space_state
 
 		var query = PhysicsPointQueryParameters3D.new()
@@ -79,12 +87,19 @@ func place_block(block_pos: Vector3, block_parent: Node3D) -> Node3D:
 		if result.size() > 0:
 			return null
 
-		var new_block: Node3D = block.instantiate()
+		var new_block: Node3D = block_scene.instantiate()
 		block_parent.add_child(new_block);
 		new_block.global_position = block_pos 
+
+		# Align the block to the placement normal
+		var block_align_dir: Vector3 = new_block.get_meta("align_direction")
+		if block_align_dir != null:
+			rotate_to_match_dir(new_block, block_align_dir, place_normal)
+
 		return new_block
 
 
+# Handles the user input for placing and deleting blocks
 var next_block_offset: Vector3
 var temp_block: Node3D
 func place_blocks():
@@ -101,10 +116,10 @@ func place_blocks():
 		next_block_offset = highlight_normal * BlockConsts.BLOCK_SIZE
 		var new_block_position = highlighted_block_instace.global_position + next_block_offset
 		var next_block_position = highlighted_block_instace.global_position + next_block_offset * 2
-		place_block(new_block_position, self)
+		place_block(new_block_position, highlight_normal, block, self)
 
 		# Spawn temp block for placing multiple in a line
-		temp_block = place_block(next_block_position, self)
+		temp_block = place_block(next_block_position, highlight_normal, block, self)
 		if is_instance_valid(temp_block):
 			temp_block.visible = false
 
@@ -114,7 +129,7 @@ func place_blocks():
 			var collider: Node3D = block_detector.get_collider()
 			if collider.position == temp_block.position:
 				temp_block.visible = true
-				temp_block = place_block(temp_block.global_position + next_block_offset, self)
+				temp_block = place_block(temp_block.global_position + next_block_offset, next_block_offset.normalized(), block, self)
 
 				if is_instance_valid(temp_block):
 					temp_block.visible = false
