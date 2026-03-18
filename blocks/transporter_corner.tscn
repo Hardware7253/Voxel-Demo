@@ -1,13 +1,15 @@
 [gd_scene format=4 uid="uid://dpepqfdumftuk"]
 
-[ext_resource type="Texture2D" uid="uid://5ph5gxrjs37m" path="res://assets/corner_2_0.png" id="1_keu2g"]
+[ext_resource type="Texture2D" uid="uid://5ph5gxrjs37m" path="res://assets/corner_2_0.png" id="1_6bwtl"]
+[ext_resource type="Script" uid="uid://dov5hc3g6v2l4" path="res://blocks/transporter_corner.gd" id="1_12kge"]
+[ext_resource type="PackedScene" uid="uid://jot5pgo3utp0" path="res://blocks/transporter.tscn" id="2_hqxoo"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_db2i8"]
 size = Vector3(8, 8, 8)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_af5il"]
 resource_name = "Material.1"
-albedo_texture = ExtResource("1_keu2g")
+albedo_texture = ExtResource("1_6bwtl")
 metallic = 0.2
 roughness = 0.5
 
@@ -46,7 +48,10 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_xl7p8")
 
 [node name="StaticBody3D" type="StaticBody3D" unique_id=134905297]
+script = ExtResource("1_12kge")
+replacement_block = ExtResource("2_hqxoo")
 metadata/align_direction = Vector3(1, 0, 0)
+metadata/name = "transporter_corner"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1180714192]
 shape = SubResource("BoxShape3D_db2i8")

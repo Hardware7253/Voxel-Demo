@@ -5,6 +5,8 @@ extends Node3D
 @export var mouse_sensitivity := 2.0
 @export var sprint_mod := 2.0
 
+var mouse_captured := true
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -38,6 +40,14 @@ func move_camera(delta: float):
 		
 	if Input.is_action_pressed("move_backward"):
 		dir_vec += Vector3.BACK
+
+	if Input.is_action_just_pressed("ui_cancel"):
+		if mouse_captured:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		else:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		mouse_captured = not mouse_captured
+
 
 	var move_vec := dir_vec.rotated(Vector3.UP, self.rotation.y)
 

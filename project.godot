@@ -17,7 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-BlockConsts="*uid://bx0u73pk58tgp"
+BlockGlobals="*uid://bx0u73pk58tgp"
 
 [editor_plugins]
 
