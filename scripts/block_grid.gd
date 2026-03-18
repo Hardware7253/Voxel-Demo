@@ -38,7 +38,10 @@ func reset_highlight():
 func rotate_to_match_dir(node: Node3D, node_alignment_dir: Vector3, match_dir: Vector3):
 	var angle = acos(node_alignment_dir.dot(match_dir)) # From θ = cos⁻¹((a·b) / (|a||b|))
 	var axis = node_alignment_dir.cross(match_dir)
-	node.basis = Basis(axis.normalized(), angle)
+	if axis.length() > 0.000001:
+		node.basis = Basis(axis.normalized(), angle)
+	else:
+		node.basis = Basis(match_dir, angle)
 
 # Highlight the blcok that the block detector raycast is colliding with
 func highlight_block():
@@ -74,7 +77,7 @@ func highlight_block():
 
 # Places a block at the provided position and returns the instance
 # null will be returned if the position was occupied
-func place_block(block_pos: Vector3, place_normal: Vector3, block_scene: PackedScene, block_parent: Node3D, add_block_to_dict := true) -> Node3D:
+func place_block(block_pos: Vector3, place_normal: Vector3, block_scene: PackedScene, block_parent: Node3D, dummy_block:= false) -> Node3D:
 	if BlockGlobals.blocks_dict.has(Vector3i(block_pos)):
 		return null
 
@@ -87,10 +90,9 @@ func place_block(block_pos: Vector3, place_normal: Vector3, block_scene: PackedS
 	if block_align_dir != null:
 		rotate_to_match_dir(new_block, block_align_dir, place_normal)
 
-	if add_block_to_dict:
+	if not dummy_block:
 		BlockGlobals.blocks_dict[Vector3i(block_pos)] = new_block
-
-	adjacency_checker.update_neighbors(block_pos, self)
+		adjacency_checker.update_block_and_neighbors(block_pos, self)
 
 	return new_block
 
@@ -115,7 +117,7 @@ func place_blocks():
 		place_block(new_block_position, highlight_normal, block, self)
 
 		# Spawn temp block for placing multiple in a line
-		temp_block = place_block(next_block_position, highlight_normal, block, self, false)
+		temp_block = place_block(next_block_position, highlight_normal, block, self, true)
 		if is_instance_valid(temp_block):
 			temp_block.visible = false
 
@@ -128,18 +130,19 @@ func place_blocks():
 				# Turn the temp block into a real block
 				temp_block.visible = true
 				BlockGlobals.blocks_dict[Vector3i(temp_block.global_position)] = temp_block 
-				adjacency_checker.update_neighbors(Vector3i(temp_block.global_position), self)
+				adjacency_checker.update_block_and_neighbors(Vector3i(temp_block.global_position), self)
 
 				# Spawn a new temp block
-				temp_block = place_block(temp_block.global_position + next_block_offset, next_block_offset.normalized(), block, self, false)
+				temp_block = place_block(temp_block.global_position + next_block_offset, next_block_offset.normalized(), block, self, true)
 
 				if is_instance_valid(temp_block):
 					temp_block.visible = false
 		
 	if Input.is_action_just_pressed("delete_block") or Input.is_action_pressed("quick_delete"):
-		adjacency_checker.update_neighbors(Vector3i(highlighted_block_instance.global_position), self)
+		var deleted_position := Vector3i(highlighted_block_instance.global_position)
 		highlighted_block_instance.queue_free()
 		BlockGlobals.blocks_dict.erase(Vector3i(highlighted_block_instance.position))
+		adjacency_checker.update_neighbors(deleted_position, self)
 		reset_highlight()
 
 

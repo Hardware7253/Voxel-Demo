@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://d3gi20ijhaod6" path="res://blocks/transporter.gd" id="1_onliu"]
 [ext_resource type="Texture2D" uid="uid://cpa4shl5mxm1o" path="res://assets/connector_2_0.png" id="1_picyo"]
-[ext_resource type="PackedScene" uid="uid://dpepqfdumftuk" path="res://blocks/transporter_corner.tscn" id="2_ojg12"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_y22or"]
 resource_name = "Material.1"
@@ -49,7 +48,6 @@ size = Vector3(8, 8, 8)
 
 [node name="StaticBody3D" type="StaticBody3D" unique_id=1126289137]
 script = ExtResource("1_onliu")
-replacement_block = ExtResource("2_ojg12")
 metadata/align_direction = Vector3(1, 0, 0)
 metadata/name = "transporter"
 
