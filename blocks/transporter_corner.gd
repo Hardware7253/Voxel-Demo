@@ -4,34 +4,30 @@ extends StaticBody3D
 # If the block is updated this function will spawn the new block and enter it into the blocks_dict
 # Returns true if the old block instance should be deleted 
 func update_from_adjacent(adjacents: Array[Vector3i], block_grid: Node3D) -> bool:
-	if len(adjacents) != 2:
-		return false 
-
-	var adjacent_blocks: Array[Node3D]  
+	var adjacent_blocks: Array[Node3D] = []
 	for adjacent_pos in adjacents:
 		var block = BlockGlobals.blocks_dict[adjacent_pos]
 
 		var block_name: String = block.get_meta("name")
 		if block_name == "transporter_corner" or block_name == "transporter":
 			adjacent_blocks.append(block)
-		else:
-			return false 
 
-	var pos_1 := Vector3i(BlockGlobals.blocks_dict[adjacents[0]].global_position)
-	var pos_2 := Vector3i(BlockGlobals.blocks_dict[adjacents[1]].global_position)
-	var same_coord := 0
+	if len(adjacent_blocks) != 2:
+		return false 
 
-	# If the 2 adjacent blocks are arranged in a line we want to change this block to the replacement block
-	for i in range(0, 3):
-		if pos_1[i] == pos_2[i]:
-			same_coord += 1
+	var pos_1 := BlockGlobals.to_grid(adjacent_blocks[0].global_position)
+	var pos_2 := BlockGlobals.to_grid(adjacent_blocks[1].global_position)
 
-	if same_coord == 2:
+	var own_pos: Vector3i = BlockGlobals.to_grid(self.global_position)
+	var dir1 = pos_1 - own_pos
+	var dir2 = pos_2 - own_pos
+
+	if dir1 == -dir2:
 		var new_block: Node3D = load("res://blocks/transporter.tscn").instantiate()
 		block_grid.add_child(new_block);
 		new_block.global_position = self.global_position
 		new_block.basis = self.basis
-		BlockGlobals.blocks_dict[Vector3i(self.global_position)] = new_block
+		BlockGlobals.blocks_dict[BlockGlobals.to_grid(self.global_position)] = new_block
 		return true 
 
 	return false 

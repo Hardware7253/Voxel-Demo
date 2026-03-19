@@ -91,7 +91,7 @@ func place_block(block_pos: Vector3, place_normal: Vector3, block_scene: PackedS
 		rotate_to_match_dir(new_block, block_align_dir, place_normal)
 
 	if not dummy_block:
-		BlockGlobals.blocks_dict[Vector3i(block_pos)] = new_block
+		BlockGlobals.blocks_dict[BlockGlobals.to_grid(block_pos)] = new_block
 		adjacency_checker.update_block_and_neighbors(block_pos, self)
 
 	return new_block
@@ -129,8 +129,8 @@ func place_blocks():
 
 				# Turn the temp block into a real block
 				temp_block.visible = true
-				BlockGlobals.blocks_dict[Vector3i(temp_block.global_position)] = temp_block 
-				adjacency_checker.update_block_and_neighbors(Vector3i(temp_block.global_position), self)
+				BlockGlobals.blocks_dict[BlockGlobals.to_grid(temp_block.global_position)] = temp_block 
+				adjacency_checker.update_block_and_neighbors(BlockGlobals.to_grid(temp_block.global_position), self)
 
 				# Spawn a new temp block
 				temp_block = place_block(temp_block.global_position + next_block_offset, next_block_offset.normalized(), block, self, true)
@@ -139,10 +139,10 @@ func place_blocks():
 					temp_block.visible = false
 		
 	if Input.is_action_just_pressed("delete_block") or Input.is_action_pressed("quick_delete"):
-		var deleted_position := Vector3i(highlighted_block_instance.global_position)
-		highlighted_block_instance.queue_free()
-		BlockGlobals.blocks_dict.erase(Vector3i(highlighted_block_instance.position))
+		var deleted_position := highlighted_block_instance.global_position
+		BlockGlobals.blocks_dict.erase(BlockGlobals.to_grid(deleted_position))
 		adjacency_checker.update_neighbors(deleted_position, self)
+		highlighted_block_instance.queue_free()
 		reset_highlight()
 
 

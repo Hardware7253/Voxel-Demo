@@ -9,7 +9,7 @@ func update_from_adjacent(adjacents: Array[Vector3i], block_grid: Node3D) -> boo
 		block_grid.add_child(new_block);
 		new_block.global_position = self.global_position
 		new_block.basis = self.basis
-		BlockGlobals.blocks_dict[Vector3i(self.global_position)] = new_block
+		BlockGlobals.blocks_dict[BlockGlobals.to_grid(self.global_position)] = new_block
 		return true 
 
 	return false 
