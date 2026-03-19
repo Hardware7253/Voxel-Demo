@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 BlockGlobals="*uid://bx0u73pk58tgp"
+MathGlobals="*uid://k3ex5odehjvr"
 
 [editor_plugins]
 

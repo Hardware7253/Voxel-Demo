@@ -1,9 +1,10 @@
 extends Node3D 
 
-@export var xz_speed := 12;
-@export var y_speed := 12;
+@export var speed := 5
 @export var mouse_sensitivity := 2.0
 @export var sprint_mod := 2.0
+
+var raw_speed = speed * BlockGlobals.BLOCK_SIZE
 
 var mouse_captured := true
 
@@ -50,10 +51,7 @@ func move_camera(delta: float):
 
 
 	var move_vec := dir_vec.rotated(Vector3.UP, self.rotation.y)
-
-	move_vec.x *= xz_speed;
-	move_vec.y *= y_speed;
-	move_vec.z *= xz_speed;
+	move_vec *= raw_speed
 
 	if is_sprinting:
 		move_vec *= sprint_mod

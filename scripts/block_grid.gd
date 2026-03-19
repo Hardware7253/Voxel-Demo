@@ -25,23 +25,13 @@ func _ready() -> void:
 	
 	# Spawn some blocks
 	for i in range(0, 10):
-		place_block(Vector3(i * BlockGlobals.BLOCK_SIZE, 0, 0), Vector3.UP, block, self)
+		place_block(Vector3(i * BlockGlobals.BLOCK_SIZE, 0, 0), block)
 
 func reset_highlight():
 	highlight_active = false
 	highlight_instance.visible = false
 	highlighted_block_instance = null
 	highlight_normal = Vector3.ZERO
-
-# Rotates a node to match the direction of the node_alignment_dir to match_dir
-# Directions are expected to be unit vectors
-func rotate_to_match_dir(node: Node3D, node_alignment_dir: Vector3, match_dir: Vector3):
-	var angle = acos(node_alignment_dir.dot(match_dir)) # From θ = cos⁻¹((a·b) / (|a||b|))
-	var axis = node_alignment_dir.cross(match_dir)
-	if axis.length() > 0.000001:
-		node.basis = Basis(axis.normalized(), angle)
-	else:
-		node.basis = Basis(match_dir, angle)
 
 # Highlight the blcok that the block detector raycast is colliding with
 func highlight_block():
@@ -52,50 +42,55 @@ func highlight_block():
 		if not is_instance_valid(collider):
 			return
 		
-		var highlighted_block_changed := false
-		if is_instance_valid(highlighted_block_instance):
-			highlighted_block_changed = highlighted_block_instance.global_position != collider.global_position
+		highlight_active = true
+		highlight_normal = norm
+		highlighted_block_instance = collider
 
-		if norm != highlight_normal or highlighted_block_changed:
-			highlight_active = true
-			highlight_normal = norm
-			highlighted_block_instance = collider
+		var highlight_mesh: MeshInstance3D = highlight_instance.get_child(0)
+		highlight_mesh.rotation = Vector3.ZERO
 
-			var highlight_mesh: MeshInstance3D = highlight_instance.get_child(0)
-			highlight_mesh.rotation = Vector3.ZERO
+		highlight_instance.global_position = collider.global_position + (BlockGlobals.BLOCK_SIZE * norm / 2)
+		highlight_instance.visible = true 
 
-			highlight_instance.global_position = collider.global_position + (BlockGlobals.BLOCK_SIZE * norm / 2)
-			highlight_instance.visible = true 
-
-			# Align the highlight to the collision normal
-			var highlight_align_dir: Vector3 = highlight_instance.get_meta("align_direction")
-			if highlight_align_dir != null:
-				rotate_to_match_dir(highlight_instance, highlight_align_dir, norm)
+		# Align the highlight to the collision normal
+		var highlight_align_dir: Vector3 = highlight_instance.get_meta("align_direction")
+		if highlight_align_dir != null:
+			MathGlobals.rotate_to_match_dir(highlight_instance, highlight_align_dir, norm)
 
 	else:
 		reset_highlight()
 
 # Places a block at the provided position and returns the instance
 # null will be returned if the position was occupied
-func place_block(block_pos: Vector3, place_normal: Vector3, block_scene: PackedScene, block_parent: Node3D, dummy_block:= false) -> Node3D:
-	if BlockGlobals.blocks_dict.has(Vector3i(block_pos)):
+func place_block(block_pos: Vector3, block_scene: PackedScene, spawn_temp_block := false) -> Node3D:
+	var block_grid_pos: Vector3i = BlockGlobals.to_grid(block_pos)
+	if BlockGlobals.blocks_dict.has(block_grid_pos):
 		return null
 
 	var new_block: Node3D = block_scene.instantiate()
-	block_parent.add_child(new_block);
+	self.add_child(new_block);
 	new_block.global_position = block_pos 
 
-	# Align the block to the placement normal
-	var block_align_dir: Vector3 = new_block.get_meta("align_direction")
-	if block_align_dir != null:
-		rotate_to_match_dir(new_block, block_align_dir, place_normal)
-
-	if not dummy_block:
-		BlockGlobals.blocks_dict[BlockGlobals.to_grid(block_pos)] = new_block
+	if not spawn_temp_block:
+		BlockGlobals.blocks_dict[BlockGlobals.to_grid(block_grid_pos)] = new_block
 		adjacency_checker.update_block_and_neighbors(block_pos, self)
 
 	return new_block
 
+# Places the temp block with an offset from the real block
+# Used for placing blocks in a line
+# Null will be returned if the temp block could not be placed
+func place_temp_block(block_pos: Vector3, temp_block_offset: Vector3, block_scene: PackedScene) -> Node3D:
+
+	# Allow for the temp block to be placed through one block
+	# This allows for drag placement through intersections of blocks
+	for i in range(1, 3):
+		var temp_block_pos := block_pos + (temp_block_offset * i)
+		var temp_block_instance = place_block(temp_block_pos, block_scene, true)
+		if is_instance_valid(temp_block_instance):
+			return temp_block_instance
+
+	return null	
 
 # Handles the user input for placing and deleting blocks
 var next_block_offset: Vector3
@@ -103,6 +98,7 @@ var temp_block: Node3D
 func place_blocks():
 	if Input.is_action_just_released("place_block") and is_instance_valid(temp_block):
 		temp_block.queue_free()
+		reset_highlight()
 
 	if not highlight_active:
 		return
@@ -113,11 +109,10 @@ func place_blocks():
 	if Input.is_action_just_pressed("place_block"):
 		next_block_offset = highlight_normal * BlockGlobals.BLOCK_SIZE
 		var new_block_position = highlighted_block_instance.global_position + next_block_offset
-		var next_block_position = highlighted_block_instance.global_position + next_block_offset * 2
-		place_block(new_block_position, highlight_normal, block, self)
+		place_block(new_block_position, block)
 
 		# Spawn temp block for placing multiple in a line
-		temp_block = place_block(next_block_position, highlight_normal, block, self, true)
+		temp_block = place_temp_block(new_block_position, next_block_offset, block)
 		if is_instance_valid(temp_block):
 			temp_block.visible = false
 
@@ -125,15 +120,16 @@ func place_blocks():
 	if Input.is_action_pressed("place_block") and is_instance_valid(temp_block):
 		if block_detector.is_colliding():
 			var collider: Node3D = block_detector.get_collider()
-			if collider.position == temp_block.position:
+			var temp_block_grid_pos: Vector3i = BlockGlobals.to_grid(temp_block.position)
+			if BlockGlobals.to_grid(collider.position) == temp_block_grid_pos:
 
 				# Turn the temp block into a real block
 				temp_block.visible = true
-				BlockGlobals.blocks_dict[BlockGlobals.to_grid(temp_block.global_position)] = temp_block 
-				adjacency_checker.update_block_and_neighbors(BlockGlobals.to_grid(temp_block.global_position), self)
+				BlockGlobals.blocks_dict[temp_block_grid_pos] = temp_block 
+				adjacency_checker.update_block_and_neighbors(temp_block_grid_pos, self)
 
 				# Spawn a new temp block
-				temp_block = place_block(temp_block.global_position + next_block_offset, next_block_offset.normalized(), block, self, true)
+				temp_block = place_temp_block(temp_block.global_position, next_block_offset, block)
 
 				if is_instance_valid(temp_block):
 					temp_block.visible = false

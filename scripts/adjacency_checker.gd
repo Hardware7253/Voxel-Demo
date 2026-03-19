@@ -12,7 +12,6 @@ func get_adjacents(block_pos: Vector3) -> Array[Vector3i]:
 		if BlockGlobals.blocks_dict.has(adjacent_pos):
 			adjacents.append(adjacent_pos)	
 
-	print(adjacents)
 	return adjacents 
 
 # Updates the given blocks neighbors

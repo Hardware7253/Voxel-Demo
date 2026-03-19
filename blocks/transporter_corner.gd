@@ -28,6 +28,13 @@ func update_from_adjacent(adjacents: Array[Vector3i], block_grid: Node3D) -> boo
 		new_block.global_position = self.global_position
 		new_block.basis = self.basis
 		BlockGlobals.blocks_dict[BlockGlobals.to_grid(self.global_position)] = new_block
+
+		# Align the block to the placement normal
+		var block_align_dir: Vector3 = new_block.get_meta("align_direction")
+		if block_align_dir != null:
+			MathGlobals.rotate_to_match_dir(new_block, block_align_dir, Vector3(dir1).normalized())
+
+
 		return true 
 
 	return false 
