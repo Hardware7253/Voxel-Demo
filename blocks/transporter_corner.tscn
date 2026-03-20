@@ -49,7 +49,7 @@ size = Vector3(8, 8, 8)
 [node name="StaticBody3D" type="StaticBody3D" unique_id=134905297]
 script = ExtResource("1_12kge")
 metadata/align_direction = Vector3(1, 0, 0)
-metadata/name = "transporter_corner"
+metadata/block_name = "transporter_corner"
 
 [node name="Layer_1" type="MeshInstance3D" parent="." unique_id=321321783]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -4, -4)

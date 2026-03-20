@@ -4,11 +4,13 @@ extends Node3D
 @export var block: PackedScene;
 
 @export var block_detector: RayCast3D
+@export var plane_detector: RayCast3D
 @export var adjacency_checker: Node3D
 
 var highlight_active := false
-var highlight_instance: Node3D; # Instance of the highlight square
-var highlighted_block_instance: Node3D; 
+var highlight_instance: Node3D # Instance of the highlight square
+# var highlighted_block_instance: Node3D
+var highlighted_block_pos: Vector3i
 var highlight_normal := Vector3.ZERO
 
 const GHOST_BLOCK_TRANSPARENCY := 0.5
@@ -22,8 +24,9 @@ func _ready() -> void:
 	var highlight_mesh = highlight_instance.get_child(0)
 	highlight_mesh.scale = Vector3(BlockGlobals.BLOCK_SIZE, 0.001, BlockGlobals.BLOCK_SIZE) 
 	
-	# Resize the block detector
+	# Resize raycasts 
 	block_detector.scale.y = BlockGlobals.BLOCK_HIGHLIGHT_LEN * BlockGlobals.BLOCK_SIZE
+	plane_detector.scale.y = BlockGlobals.BLOCK_HIGHLIGHT_LEN * BlockGlobals.BLOCK_SIZE
 	
 	# Spawn some blocks
 	for i in range(0, 10):
@@ -32,36 +35,71 @@ func _ready() -> void:
 func reset_highlight():
 	highlight_active = false
 	highlight_instance.visible = false
-	highlighted_block_instance = null
-	highlight_normal = Vector3.ZERO
 
-# Highlight the blcok that the block detector raycast is colliding with
-func highlight_block():
-	if block_detector.is_colliding():
-		var collision_point = block_detector.get_collision_point()
-		var norm = block_detector.get_collision_normal()
-		var collider: Node3D = block_detector.get_collider()
-		
-		if not is_instance_valid(collider):
-			return
-		
-		highlight_active = true
-		highlight_normal = norm
-		highlighted_block_instance = collider
+# Sets the highlight instances position based on a block position and collision normal
+func set_highlight(block_pos: Vector3, collision_normal: Vector3):
+	highlight_active = true
+	highlight_normal = collision_normal
 
-		# var highlight_mesh: MeshInstance3D = highlight_instance.get_child(0)
-		highlight_instance.rotation = Vector3.ZERO
+	highlight_instance.rotation = Vector3.ZERO
 
-		highlight_instance.global_position = collider.global_position + (BlockGlobals.BLOCK_SIZE * norm / 2)
-		highlight_instance.visible = true 
+	highlight_instance.global_position = block_pos + (BlockGlobals.BLOCK_SIZE * collision_normal / 2)
+	highlighted_block_pos = BlockGlobals.to_grid(block_pos)
+	highlight_instance.visible = true 
 
-		# Align the highlight to the collision normal
+	# Align the highlight to the collision collision_normal
+	if highlight_instance.has_meta("align_direction"):
 		var highlight_align_dir: Vector3 = highlight_instance.get_meta("align_direction")
-		if highlight_align_dir != null:
-			MathGlobals.rotate_to_match_dir(highlight_instance, highlight_align_dir, norm)
+		MathGlobals.rotate_to_match_dir(highlight_instance, highlight_align_dir, collision_normal)
 
-	else:
+# Highlight blocks and planes to allow placing blocks of them
+func highlight_blocks_planes():
+	if not highlight_block():
+		if not highlight_plane():
+			reset_highlight()
+
+# Highlight the block that the block detector raycast is colliding with
+# Returns true if something is being highlighted
+func highlight_block() -> bool:
+	if not block_detector.is_colliding():
 		reset_highlight()
+		return false
+
+	var collision_normal = block_detector.get_collision_normal()
+	var collider: Node3D = block_detector.get_collider()
+	
+	if not is_instance_valid(collider):
+		return false
+
+	set_highlight(collider.global_position, collision_normal)
+	return true
+
+
+# Highlight a position on the placement planes
+# Returns true if something is being highlighted
+func highlight_plane() -> bool:
+	if not plane_detector.is_colliding():
+		return false
+
+	# Check for plane
+	var collider: Node3D = plane_detector.get_collider()
+	if is_instance_valid(collider):
+		if not collider.has_meta("plane_normal"):
+			return false
+	else:
+		return false
+
+	# Check collision and plane normals face the same direction
+	var plane_normal: Vector3 = collider.get_meta("plane_normal")
+	var collision_normal = plane_detector.get_collision_normal()
+	if plane_normal.dot(collision_normal) < 0:
+		collision_normal = -collision_normal
+
+	var collision_point = plane_detector.get_collision_point()
+	var block_point = BlockGlobals.to_nearest_block_pos(collision_point - collision_normal)
+	set_highlight(Vector3(block_point), collision_normal)
+	return true
+
 
 # Places a block at the provided position and returns the instance
 # null will be returned if the position was occupied
@@ -107,12 +145,9 @@ func place_blocks():
 	if not highlight_active:
 		return
 
-	if not is_instance_valid(highlighted_block_instance):
-		return
-
 	if Input.is_action_just_pressed("place_block"):
 		next_block_offset = highlight_normal * BlockGlobals.BLOCK_SIZE
-		var new_block_position = highlighted_block_instance.global_position + next_block_offset
+		var new_block_position = Vector3(highlighted_block_pos) + next_block_offset
 		place_block(new_block_position, block)
 
 		# Spawn temp block for placing multiple in a line
@@ -123,25 +158,30 @@ func place_blocks():
 		if block_detector.is_colliding():
 			var collider: Node3D = block_detector.get_collider()
 			var temp_block_grid_pos: Vector3i = BlockGlobals.to_grid(temp_block.position)
-			if BlockGlobals.to_grid(collider.position) == temp_block_grid_pos:
 
-				# Turn the temp block into a real block
-				BlockGlobals.get_mesh(temp_block).transparency = 0
-				BlockGlobals.blocks_dict[temp_block_grid_pos] = temp_block 
-				adjacency_checker.update_block_and_neighbors(temp_block_grid_pos, self)
+			if is_instance_valid(collider):
+				if BlockGlobals.to_grid(collider.position) == temp_block_grid_pos:
 
-				# Spawn a new temp block
-				temp_block = place_temp_block(temp_block.global_position, next_block_offset, block)
+					# Turn the temp block into a real block
+					BlockGlobals.get_mesh(temp_block).transparency = 0
+					BlockGlobals.blocks_dict[temp_block_grid_pos] = temp_block 
+					adjacency_checker.update_block_and_neighbors(temp_block_grid_pos, self)
+
+					# Spawn a new temp block
+					temp_block = place_temp_block(temp_block.global_position, next_block_offset, block)
 		
 	if Input.is_action_just_pressed("delete_block") or Input.is_action_pressed("quick_delete"):
-		var deleted_position := highlighted_block_instance.global_position
-		BlockGlobals.blocks_dict.erase(BlockGlobals.to_grid(deleted_position))
-		adjacency_checker.update_neighbors(deleted_position, self)
-		highlighted_block_instance.queue_free()
-		reset_highlight()
+		if BlockGlobals.blocks_dict.has(highlighted_block_pos):
+			var highlighted_block_instance: Node3D = BlockGlobals.blocks_dict[highlighted_block_pos]
+			BlockGlobals.blocks_dict.erase(highlighted_block_pos)
+			adjacency_checker.update_neighbors(highlighted_block_pos, self)
+			highlighted_block_instance.queue_free()
+			reset_highlight()
 
 
 func _process(_delta: float) -> void:
-	highlight_block()
+	# highlight_block()
+	# highlight_plane()
+	highlight_blocks_planes()
 	place_blocks()
 	# print("active:", highlight_active, " pos:", highlight_block_pos, " normal:", highlight_normal)

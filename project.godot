@@ -81,6 +81,8 @@ quick_delete={
 
 [layer_names]
 
+3d_physics/layer_1="block_layer"
+3d_physics/layer_2="world_plane_layer"
 3d_render/use_filter=true
 3d_render/show_image=true
 

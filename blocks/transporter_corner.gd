@@ -8,7 +8,7 @@ func update_from_adjacent(adjacents: Array[Vector3i], block_grid: Node3D) -> boo
 	for adjacent_pos in adjacents:
 		var block = BlockGlobals.blocks_dict[adjacent_pos]
 
-		var block_name: String = block.get_meta("name")
+		var block_name: String = block.get_meta("block_name")
 		if block_name == "transporter_corner" or block_name == "transporter":
 			adjacent_blocks.append(block)
 

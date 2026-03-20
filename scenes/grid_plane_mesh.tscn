@@ -16,7 +16,8 @@ size = Vector2(1, 1)
 size = Vector3(1, 0, 1)
 
 [node name="Node3D" type="StaticBody3D" unique_id=1241449444]
-metadata/align_direction = Vector3(0, 1, 0)
+collision_layer = 2
+metadata/plane_normal = Vector3(0, 0, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1770388712]
 material_override = SubResource("ShaderMaterial_bl13t")

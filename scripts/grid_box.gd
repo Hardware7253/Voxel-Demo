@@ -71,6 +71,9 @@ func _ready() -> void:
 		scale_plane(plane, plane_grid_size * BlockGlobals.BLOCK_SIZE)
 		plane.position = plane_offset_map[plane_dir] * BlockGlobals.BLOCK_SIZE 
 		plane.rotation_degrees = plane_rotation_map[plane_dir]
+
+		if plane.has_meta("plane_normal"):
+			plane.set_meta("plane_normal", -Vector3(plane_dir))
 		set_plane_shader_params(plane, plane_grid_size)
 
 
