@@ -3,13 +3,14 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ks0tn"]
 albedo_color = Color(0.69, 0.69, 0.69, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_ebtek"]
+[sub_resource type="BoxMesh" id="BoxMesh_paew0"]
 
 [node name="Node3D" type="Node3D" unique_id=1775433508]
+transform = Transform3D(2.09, 0, 0, 0, 2.09, 0, 0, 0, 2.09, 0, 0, 0)
 metadata/align_direction = Vector3(0, 1, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=596410021]
-transform = Transform3D(8, 0, 0, 0, 0.001, 0, 0, 0, 8, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.01, 0, 0, 0, 1, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_ks0tn")
 transparency = 0.64
-mesh = SubResource("BoxMesh_ebtek")
+mesh = SubResource("BoxMesh_paew0")

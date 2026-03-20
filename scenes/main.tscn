@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dpepqfdumftuk" path="res://blocks/transporter_corner.tscn" id="3_tefeu"]
 [ext_resource type="PackedScene" uid="uid://d0e8eqmkibcoy" path="res://blocks/highlight.tscn" id="4_tbgi4"]
 [ext_resource type="Script" uid="uid://02mkkpi3qu5t" path="res://scripts/adjacency_checker.gd" id="4_tefeu"]
+[ext_resource type="PackedScene" uid="uid://cfuiq42vbr7gc" path="res://scenes/grid_box.tscn" id="7_o6xl0"]
 
 [sub_resource type="Environment" id="Environment_sugp2"]
 ambient_light_source = 2
@@ -27,8 +28,6 @@ script = ExtResource("4_tefeu")
 [node name="Player" type="Node3D" parent="." unique_id=1066406455]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -7.72)
 script = ExtResource("3_sugp2")
-xz_speed = 20
-y_speed = 20
 mouse_sensitivity = 1.5
 
 [node name="Camera3D" type="Camera3D" parent="Player" unique_id=619911490]
@@ -53,3 +52,5 @@ grow_vertical = 2
 [node name="Crosshair" type="Sprite2D" parent="Control" unique_id=957518994]
 texture_filter = 1
 texture = ExtResource("1_jyhfs")
+
+[node name="StaticBody3D" parent="." unique_id=1515182297 instance=ExtResource("7_o6xl0")]

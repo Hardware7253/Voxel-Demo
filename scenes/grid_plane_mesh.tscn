@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://w8fsuaqq0028"]
+
+[ext_resource type="Shader" uid="uid://bkcjsveai182c" path="res://shaders/grid.gdshader" id="1_se502"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bl13t"]
+render_priority = 0
+shader = ExtResource("1_se502")
+shader_parameter/grid_size = Vector2(2, 2)
+shader_parameter/line_color = Color(0.2, 0.3, 0.5, 1)
+shader_parameter/line_thickness = Vector2(0.01, 0.01)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_errlg"]
+size = Vector2(1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_se502"]
+size = Vector3(1, 0, 1)
+
+[node name="Node3D" type="StaticBody3D" unique_id=1241449444]
+metadata/align_direction = Vector3(0, 1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1770388712]
+material_override = SubResource("ShaderMaterial_bl13t")
+mesh = SubResource("PlaneMesh_errlg")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1823695320]
+shape = SubResource("BoxShape3D_se502")

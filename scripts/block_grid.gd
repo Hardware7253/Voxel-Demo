@@ -11,14 +11,16 @@ var highlight_instance: Node3D; # Instance of the highlight square
 var highlighted_block_instance: Node3D; 
 var highlight_normal := Vector3.ZERO
 
+const GHOST_BLOCK_TRANSPARENCY := 0.5
+
 func _ready() -> void:
 
 	# Spawn block highlight node and set it's size
 	highlight_instance = highlight.instantiate()
 	self.add_child(highlight_instance)
 	highlight_instance.visible = false
-	var highlight_mesh = highlight_instance.get_node("MeshInstance3D")
-	highlight_mesh.scale = Vector3(BlockGlobals.BLOCK_SIZE, 0.001, BlockGlobals.BLOCK_SIZE)
+	var highlight_mesh = highlight_instance.get_child(0)
+	highlight_mesh.scale = Vector3(BlockGlobals.BLOCK_SIZE, 0.001, BlockGlobals.BLOCK_SIZE) 
 	
 	# Resize the block detector
 	block_detector.scale.y = BlockGlobals.BLOCK_HIGHLIGHT_LEN * BlockGlobals.BLOCK_SIZE
@@ -36,6 +38,7 @@ func reset_highlight():
 # Highlight the blcok that the block detector raycast is colliding with
 func highlight_block():
 	if block_detector.is_colliding():
+		var collision_point = block_detector.get_collision_point()
 		var norm = block_detector.get_collision_normal()
 		var collider: Node3D = block_detector.get_collider()
 		
@@ -46,8 +49,8 @@ func highlight_block():
 		highlight_normal = norm
 		highlighted_block_instance = collider
 
-		var highlight_mesh: MeshInstance3D = highlight_instance.get_child(0)
-		highlight_mesh.rotation = Vector3.ZERO
+		# var highlight_mesh: MeshInstance3D = highlight_instance.get_child(0)
+		highlight_instance.rotation = Vector3.ZERO
 
 		highlight_instance.global_position = collider.global_position + (BlockGlobals.BLOCK_SIZE * norm / 2)
 		highlight_instance.visible = true 
@@ -88,6 +91,7 @@ func place_temp_block(block_pos: Vector3, temp_block_offset: Vector3, block_scen
 		var temp_block_pos := block_pos + (temp_block_offset * i)
 		var temp_block_instance = place_block(temp_block_pos, block_scene, true)
 		if is_instance_valid(temp_block_instance):
+			BlockGlobals.get_mesh(temp_block_instance).transparency = GHOST_BLOCK_TRANSPARENCY
 			return temp_block_instance
 
 	return null	
@@ -113,8 +117,6 @@ func place_blocks():
 
 		# Spawn temp block for placing multiple in a line
 		temp_block = place_temp_block(new_block_position, next_block_offset, block)
-		if is_instance_valid(temp_block):
-			temp_block.visible = false
 
 	# Place next blocks in the same direction if the key is held down
 	if Input.is_action_pressed("place_block") and is_instance_valid(temp_block):
@@ -124,15 +126,12 @@ func place_blocks():
 			if BlockGlobals.to_grid(collider.position) == temp_block_grid_pos:
 
 				# Turn the temp block into a real block
-				temp_block.visible = true
+				BlockGlobals.get_mesh(temp_block).transparency = 0
 				BlockGlobals.blocks_dict[temp_block_grid_pos] = temp_block 
 				adjacency_checker.update_block_and_neighbors(temp_block_grid_pos, self)
 
 				# Spawn a new temp block
 				temp_block = place_temp_block(temp_block.global_position, next_block_offset, block)
-
-				if is_instance_valid(temp_block):
-					temp_block.visible = false
 		
 	if Input.is_action_just_pressed("delete_block") or Input.is_action_pressed("quick_delete"):
 		var deleted_position := highlighted_block_instance.global_position

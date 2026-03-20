@@ -11,3 +11,10 @@ var blocks_dict := {}
 # Converts a global position to a blocks_dict key
 func to_grid(pos: Vector3) -> Vector3i:
 	return Vector3i(round(pos.x), round(pos.y), round(pos.z))
+
+# Returns the blocks mesh, will return null if it doesn't exist
+func get_mesh(block_instance: Node3D) -> MeshInstance3D:
+	for child in block_instance.get_children():
+		if child is MeshInstance3D:
+			return child
+	return null

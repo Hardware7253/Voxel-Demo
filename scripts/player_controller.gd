@@ -1,6 +1,6 @@
 extends Node3D 
 
-@export var speed := 5
+@export var speed := 6.0
 @export var mouse_sensitivity := 2.0
 @export var sprint_mod := 2.0
 
