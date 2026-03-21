@@ -4,13 +4,18 @@ extends Node3D
 @export var mouse_sensitivity := 2.0
 @export var sprint_mod := 2.0
 
+@export var grid_box: Node3D
+
 var raw_speed = speed * BlockGlobals.BLOCK_SIZE
 
 var mouse_captured := true
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	grid_box.grid_spawned.connect(_on_grid_spawned)
+
+func _on_grid_spawned(grid_center: Vector3):
+	self.global_position = grid_center 
 
 func _process(delta: float) -> void:
 	move_camera(delta)

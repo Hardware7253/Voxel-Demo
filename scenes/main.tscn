@@ -15,28 +15,23 @@ ambient_light_energy = 1.09
 
 [node name="Main" type="Node3D" unique_id=2033617752]
 
-[node name="BlockGrid" type="Node3D" parent="." unique_id=498222449 node_paths=PackedStringArray("block_detector", "plane_detector", "adjacency_checker")]
+[node name="BlockGrid" type="Node3D" parent="." unique_id=498222449 node_paths=PackedStringArray("block_detector", "adjacency_checker")]
 script = ExtResource("1_o5qli")
 highlight = ExtResource("4_tbgi4")
 block = ExtResource("3_tefeu")
 block_detector = NodePath("../Player/BlockDetector")
-plane_detector = NodePath("../Player/PlaneDetector")
 adjacency_checker = NodePath("AdjacencyChecker")
 
 [node name="AdjacencyChecker" type="Node3D" parent="BlockGrid" unique_id=1322730032]
 script = ExtResource("4_tefeu")
 
-[node name="Player" type="Node3D" parent="." unique_id=1066406455]
+[node name="Player" type="Node3D" parent="." unique_id=1066406455 node_paths=PackedStringArray("grid_box")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -7.72)
 script = ExtResource("3_sugp2")
 mouse_sensitivity = 1.5
+grid_box = NodePath("../GridBox")
 
 [node name="Camera3D" type="Camera3D" parent="Player" unique_id=619911490]
-
-[node name="PlaneDetector" type="RayCast3D" parent="Player" unique_id=891284266]
-transform = Transform3D(1, 0, 0, 0, -1.3113416e-06, -1, 0, 30, -4.371139e-08, 0, 0, 0)
-collision_mask = 3
-debug_shape_custom_color = Color(0.1404, 0.12900001, 0.3, 0)
 
 [node name="BlockDetector" type="RayCast3D" parent="Player" unique_id=395879583]
 transform = Transform3D(1, 0, 0, 0, -1.3113416e-06, -1, 0, 30, -4.371139e-08, 0, 0, 0)
@@ -59,4 +54,4 @@ grow_vertical = 2
 texture_filter = 1
 texture = ExtResource("1_jyhfs")
 
-[node name="StaticBody3D" parent="." unique_id=1515182297 instance=ExtResource("7_o6xl0")]
+[node name="GridBox" parent="." unique_id=1515182297 instance=ExtResource("7_o6xl0")]

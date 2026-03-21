@@ -3,6 +3,6 @@
 [ext_resource type="Script" uid="uid://bc1nyn3qivw31" path="res://scripts/grid_box.gd" id="1_fvmlu"]
 [ext_resource type="PackedScene" uid="uid://w8fsuaqq0028" path="res://scenes/grid_plane_mesh.tscn" id="2_iyy3w"]
 
-[node name="StaticBody3D" type="Node3D" unique_id=1515182297]
+[node name="GridBox" type="Node3D" unique_id=1515182297]
 script = ExtResource("1_fvmlu")
 grid_plane = ExtResource("2_iyy3w")
